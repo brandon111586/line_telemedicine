@@ -11,22 +11,31 @@ from linebot.exceptions import (
 from linebot.models import *
 import re 
 from register import *
+from controll_status import update_data, update_status
 import pymongo
 
 
 app = Flask(__name__)
-
-
 
 # 必須放上自己的Channel Access Token
 line_bot_api = LineBotApi('rTIVtyQMX7seAHTiLsgZZlBKT1qhMw73M0FKKRqHzXgoIsJqy6gKaCTlEVhW6ypYZadFGKmToZkST07VR4BeYs7cpTE2uyKoYa2lvJ1M3t0lZShblDxYriXgVA0G4erj6RifbV1FRYzsWCT+6Vh9eAdB04t89/1O/w1cDnyilFU=')
 # 必須放上自己的Channel Secret
 handler = WebhookHandler('bd2b796ce8eba9b6114cf1daaca1437b')
 
-status = ""
+#mongodb連線
+client = pymongo.MongoClient("mongodb+srv://brandon:65432122010@linebot.xjvgoas.mongodb.net/?retryWrites=true&w=majority")
+db = client.user
+collection =db.user_data
 
-
-
+# ==============使用者資料格式===============
+# user_data = {
+#             "Line_id":user_id,
+#             "Line_name":user_name,
+#             "Real_name":"",
+#             "Age":"",
+#             "Gender":"",
+#             "Status":""
+#             }
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -51,24 +60,29 @@ def callback():
 
 @handler.add(MessageEvent, message=(TextMessage,ImageMessage))
 def handle_message(event):
-    global status #紀錄狀態
 
-   
-    msg_type = event.message.type
+#判斷用戶輸入的是哪種資料(文字or圖片)
+    msg_type = event.message.type 
     if msg_type == 'text':
         msg = event.message.text
     else :
         msg = 'image'
+
+#取得Line用戶資料
     profile = line_bot_api.get_profile(event.source.user_id)
     user_name = profile.display_name
     user_id = profile.user_id
+    
+#取得使用者目前資料庫裡的資料
+    x = collection.find_one({"Line_id":user_id})
 
+
+#****************************視訊診療註冊流程*********************************
 #開啟視訊診療服務說明頁
     if (msg =="視訊"):
         line_bot_api.reply_message(event.reply_token,video_step())
 #1-1 檢驗姓名(規則:2-4個中文字)
-    if status =='1-1':
-        print(1-1)
+    if x['Status'] =='1-1':
         if msg_type == "text":
             name_ok =regex_name(msg)
             
@@ -94,18 +108,18 @@ def handle_message(event):
                                 "emojiId": "009"
                             }
                         ]
-
+                update_data(user_id,"Real_name",msg,collection)
                 line_bot_api.reply_message(event.reply_token,[TextSendMessage(welcome_message,emojis=emoji),TextSendMessage('請輸入您的年齡')])
-                status='1-2'
+                update_status(user_id,"1-2",collection)
         
 #1-2 檢驗年齡(規則：5~130歲)
-    if status =='1-2':
-        print('1-2')
+    if x['Status'] =='1-2':
         name_range = []
         for i in range(5,130):
             name_range.append(str(i))
         if msg in name_range:
-            status ='1-3'
+            update_status(user_id,"1-3",collection) #更新狀態
+            update_data(user_id,"Age",msg,collection) #紀錄年齡
             line_bot_api.reply_message(event.reply_token,select_gender())
         else:
             emoji = [
@@ -115,14 +129,15 @@ def handle_message(event):
                                 "emojiId": "005"
                             }
                         ]
+            
             line_bot_api.reply_message(event.reply_token,[TextSendMessage(text='輸入錯誤$',emojis=emoji),TextSendMessage('請輸入正確的年齡')])
-
+            
 
 
             
     
 #2-1 健保卡上傳到對話框
-    if status == '2-1':
+    if x['Status'] == '2-1':
         if (msg_type == 'image'):
             emoji = [
                             {
@@ -139,35 +154,65 @@ def handle_message(event):
             with open(path, 'wb') as fd:
                 for chunk in message_content.iter_content():
                     fd.write(chunk)
-            status = ""
+            
+            update_status(user_id,"已註冊",collection)
+        else:
+            line_bot_api.reply_message(event.reply_token,TextSendMessage(text='請上傳健保卡圖片'))
 
-    
+ #****************************視訊診療註冊流程*********************************   
         
 
     
 @handler.add(PostbackEvent)
 def handle_postback(event):
-    global status
+    
     post_msg = event.postback.data
     
     profile = line_bot_api.get_profile(event.source.user_id)
     user_name = profile.display_name
     user_id = profile.user_id
 
-#1-1 點擊開始註冊後 詢問姓名
+#****************************視訊診療註冊流程*********************************
+#點擊醫聯網視訊診療的開始註冊按鈕後 詢問姓名(1-1)
     if post_msg == "@個人資料":
         
+        #建立user在mongodb的資料表(存個人基本資料 & 判斷目前流程的Status)
+        user_data = {
+            "Line_id":user_id,
+            "Line_name":user_name,
+            "Real_name":"",
+            "Age":"",
+            "Gender":"",
+            "Status":""
+            }
+        #若使用者尚未建立資料就幫他建立一份
+        x = collection.find_one({"Line_id":user_id})
+        if x==None:
+           x = collection.insert_one(user_data)
+        else:
+            print('已有資料')
+
+        x = collection.find_one({"Line_id":user_id})
+        #如果狀態為"已註冊"就直接給使用者視訊連結
+        if x['Status'] =='已註冊':
+            line_bot_api.reply_message(event.reply_token,[TextSendMessage("您已註冊完成!"),enter_video()]) 
+
+        #如果是第一次註冊就開始進行基本資料問答流程
         line_bot_api.reply_message(event.reply_token,TextSendMessage("請輸入您的姓名"))
-        status='1-1'
-    
-    # return 0
+        
+        update_status(user_id,"1-1",collection) #將使用者在資料庫中紀錄的狀態設為1-1
+        
+        # return 0
 
 
 #2-1 輸入健保卡照片
-    if post_msg == "@健保卡":
-        status = "2-1"
-        line_bot_api.reply_message(event.reply_token,TextSendMessage("請將健保卡拍照後上傳至對話框"))
-
+    if post_msg[:4] == "@健保卡":
+        x = collection.find_one({"Line_id":user_id})
+        if x['Status'] =='1-3': #確定他是按照問題順序從1-3來的 不是自己翻對話紀錄回去亂點選項的 
+            update_status(user_id,"2-1",collection)
+            update_data(user_id,'Gender',post_msg[-1],collection)
+            line_bot_api.reply_message(event.reply_token,TextSendMessage("請將健保卡拍照後上傳至對話框"))
+#****************************視訊診療註冊流程*********************************
 
 
 #主程式

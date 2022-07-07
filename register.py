@@ -40,7 +40,7 @@ def video_step():
         "contents": [
           {
             "type": "icon",
-            "url": "https://cdn-icons.flaticon.com/png/512/4824/premium/4824021.png?token=exp=1656988875~hmac=2d886f14a2d6d586c3be0135f68c04fc",
+            "url": "https://cdn-icons-png.flaticon.com/512/7933/7933076.png",
             "offsetEnd": "none",
             "offsetStart": "none",
             "margin": "none",
@@ -52,7 +52,10 @@ def video_step():
             "type": "text",
             "text": "註冊步驟：",
             "margin": "none",
-            "offsetBottom": "none"
+            "offsetBottom": "none",
+            "offsetStart": "sm",
+            "size": "md",
+            "weight": "regular"
           }
         ],
         "margin": "none",
@@ -160,12 +163,12 @@ def select_gender():
                  actions=[
                      PostbackAction(
                          label='男',
-                         data='@健保卡',
+                         data='@健保卡:男',
                          text='男'
                      ),
                      PostbackAction(
                          label='女',
-                         data='@健保卡',
+                         data='@健保卡:女',
                          text ='女'
                      )
                  ]
@@ -214,7 +217,7 @@ def enter_video():
           },
           {
             "type": "text",
-            "text": "註冊完成",
+            "text": "註冊已完成",
             "margin": "sm",
             "offsetEnd": "none"
           }
