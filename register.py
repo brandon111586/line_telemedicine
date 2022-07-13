@@ -217,7 +217,7 @@ def enter_video():
           },
           {
             "type": "text",
-            "text": "註冊已完成",
+            "text": "預約已完成",
             "margin": "sm",
             "offsetEnd": "none"
           }
@@ -226,8 +226,9 @@ def enter_video():
       },
       {
         "type": "text",
-        "text": "點擊下方按鈕進入您的視訊診間",
-        "margin": "xs"
+        "text": "請在預約時間點擊視訊連結\n即可與醫師進行視訊診療",
+        "margin": "xs",
+        "wrap": True
       }
     ]
   },
@@ -254,5 +255,113 @@ def enter_video():
   flex_message = FlexSendMessage(
                 alt_text='進入視訊診間',
                 contents= enter_video_message #json貼在這裡
+            )
+  return flex_message
+
+
+
+
+#確認預約時間
+def reserve_confirm(date,time):
+  reserve_confirm_message = {
+  "type": "bubble",
+  "hero": {
+    "type": "image",
+    "url": "https://i.imgur.com/wmees0t.png",
+    "size": "full",
+    "aspectRatio": "20:13",
+    "aspectMode": "cover",
+    "action": {
+      "type": "uri",
+      "uri": "http://linecorp.com/"
+    }
+  },
+  "body": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "text",
+        "text": "確認預約時間",
+        "weight": "bold",
+        "size": "xl",
+        "align": "center"
+      },
+      {
+        "type": "box",
+        "layout": "horizontal",
+        "contents": [
+          {
+            "type": "text",
+            "text": "日期",
+            "offsetEnd": "none",
+            "margin": "none",
+            "size": "lg"
+          },
+          {
+            "type": "text",
+            "text": date,
+            "align": "start",
+            "size": "lg"
+          }
+        ],
+        "offsetTop": "md"
+      },
+      {
+        "type": "separator",
+        "margin": "xl"
+      },
+      {
+        "type": "box",
+        "layout": "baseline",
+        "contents": [
+          {
+            "type": "text",
+            "text": "時段",
+            "margin": "none",
+            "size": "lg"
+          },
+          {
+            "type": "text",
+            "text": time,
+            "size": "lg"
+          }
+        ],
+        "offsetTop": "md"
+      }
+    ]
+  },
+  "footer": {
+    "type": "box",
+    "layout": "vertical",
+    "spacing": "sm",
+    "contents": [
+      {
+        "type": "button",
+        "style": "primary",
+        "height": "md",
+        "action": {
+          "type": "postback",
+          "data": "@預約成功",
+          "displayText": "預約確認",
+          "label": "確認"
+        },
+        "color": "#0087e0"
+      },
+        {
+        "type": "box",
+        "layout": "vertical",
+        "contents": []
+      }
+    ],
+    "flex": 0,
+    "offsetTop": "md",
+    "offsetBottom": "none",
+    "margin": "none"
+  }
+}
+  flex_message = FlexSendMessage(
+                alt_text='確認預約時間',
+                contents= reserve_confirm_message #json貼在這裡
             )
   return flex_message

@@ -27,6 +27,7 @@ client = pymongo.MongoClient("mongodb+srv://brandon:65432122010@linebot.xjvgoas.
 db = client.user
 collection =db.user_data
 
+
 # ==============使用者資料格式===============
 # user_data = {
 #             "Line_id":user_id,
@@ -156,8 +157,8 @@ def handle_message(event):
                     fd.write(chunk)
             
             update_status(user_id,"已註冊",collection)
-        else:
-            line_bot_api.reply_message(event.reply_token,TextSendMessage(text='請上傳健保卡圖片'))
+        if (msg_type!="image" and msg!="男" and msg!="女"):
+            line_bot_api.reply_message(event.reply_token,TextSendMessage(text='請上傳健保卡圖片到對話框'))
 
  #****************************視訊診療註冊流程*********************************   
         
@@ -219,4 +220,4 @@ def handle_postback(event):
 import os
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='127.0.0.1', port=port, debug=True)
