@@ -1,6 +1,8 @@
 from linebot.models import *
 import re
 
+from numpy import real
+
 
 #醫聯網視訊診療服務 註冊步驟說明頁
 def video_step():
@@ -179,7 +181,7 @@ def select_gender():
 
 #進入視訊診間
 
-def enter_video():
+def enter_video(video_link):
   enter_video_message = {
   "type": "bubble",
   "hero": {
@@ -244,7 +246,7 @@ def enter_video():
         "action": {
           "type": "uri",
           "label": "進入視訊診間",
-          "uri": "https://aidoctor.med-net.com/onlineExhibition/product"
+          "uri":video_link,
         },
         "color": "#0088e0"
       }
@@ -365,3 +367,179 @@ def reserve_confirm(date,time):
                 contents= reserve_confirm_message #json貼在這裡
             )
   return flex_message
+
+
+
+
+
+#收到新的診單(醫師端)
+def get_new_reserve(real_name,line_name,gender,age,date_data,time_data,video_link):
+  get_new_reserve_message = {
+  "type": "bubble",
+  "size": "mega",
+  "body": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "text",
+        "text": "新的診單",
+        "weight": "bold",
+        "color": "#1DB446",
+        "size": "md"
+      },
+      {
+        "type": "text",
+        "text": real_name,
+        "weight": "bold",
+        "size": "xxl",
+        "margin": "md"
+      },
+      {
+        "type": "separator",
+        "margin": "xl"
+      },
+      {
+        "type": "box",
+        "layout": "vertical",
+        "margin": "xl",
+        "spacing": "sm",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "text",
+                "text": "Line 暱稱",
+                "size": "lg",
+                "flex": 0,
+                "color": "#555555"
+              },
+              {
+                "type": "text",
+                "text": line_name,
+                "size": "lg",
+                "align": "end"
+              }
+            ]
+          },
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "text",
+                "text": "性別",
+                "size": "lg",
+                "color": "#555555",
+                "flex": 0
+              },
+              {
+                "type": "text",
+                "text": gender,
+                "size": "lg",
+                "color": "#111111",
+                "align": "end"
+              }
+            ]
+          },
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "text",
+                "text": "年齡",
+                "size": "lg",
+                "color": "#555555",
+                "flex": 0
+              },
+              {
+                "type": "text",
+                "text": age,
+                "size": "lg",
+                "color": "#111111",
+                "align": "end"
+              }
+            ]
+          },
+          {
+            "type": "separator",
+            "margin": "xl"
+          },
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "text",
+                "text": "預約日期",
+                "flex": 0,
+                "size": "lg"
+              },
+              {
+                "type": "text",
+                "text": date_data,
+                "align": "end",
+                "size": "lg"
+              }
+            ],
+            "margin": "xxl"
+          },
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "text",
+                "text": "預約時間",
+                "flex": 0,
+                "size": "lg"
+              },
+              {
+                "type": "text",
+                "text": time_data,
+                "size": "lg",
+                "align": "end"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "separator",
+        "margin": "xxl"
+      },
+      {
+        "type": "box",
+        "layout": "horizontal",
+        "margin": "lg",
+        "contents": [
+          {
+            "type": "button",
+            "action": {
+              "type": "uri",
+              "label": "進入視訊診間",
+              "uri": video_link
+            },
+            "style": "primary",
+            "margin": "none",
+            "height": "md"
+          }
+        ]
+      }
+    ]
+  },
+  "styles": {
+    "footer": {
+      "separator": True
+    }
+  }
+}
+  flex_message = FlexSendMessage(
+                alt_text='確認預約時間',
+                contents= get_new_reserve_message #json貼在這裡
+            )
+  return flex_message
+

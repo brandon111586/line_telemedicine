@@ -10,13 +10,15 @@ from linebot.exceptions import (
 )
 from linebot.models import *
 import re 
-from register import *
-from controll_status import update_data, update_status
+from flex_message import *
+from controll_mongodb import update_data, update_status
 import pymongo,json
 from datetime import datetime,date
+from flask_cors import CORS
+import uuid
 
 app = Flask(__name__)
-
+CORS(app)
 # 必須放上自己的Channel Access Token
 line_bot_api = LineBotApi('rTIVtyQMX7seAHTiLsgZZlBKT1qhMw73M0FKKRqHzXgoIsJqy6gKaCTlEVhW6ypYZadFGKmToZkST07VR4BeYs7cpTE2uyKoYa2lvJ1M3t0lZShblDxYriXgVA0G4erj6RifbV1FRYzsWCT+6Vh9eAdB04t89/1O/w1cDnyilFU=')
 # 必須放上自己的Channel Secret
@@ -88,7 +90,9 @@ def handle_message(event):
             "Age":"",
             "Gender":"",
             "Status":"",
-            "Reserve_Time":""
+            "Reserve_Date":"",
+            "Reserve_Time":"",
+            "Video_link":""
             }
         #若使用者尚未建立資料就幫他建立一份
         x = collection.insert_one(user_data)
@@ -226,8 +230,13 @@ def handle_message(event):
         #     line_bot_api.reply_message(event.reply_token,TextSendMessage(text = "星期五 \n上午 10:00 ~ 10:30\n下午 15:00 ~ 15:30",quick_reply=choose_time))
  
  
- #**********************************預約看診時間****************************************
+#**********************************預約看診時間****************************************
 
+
+#***************************(醫師端)查看今日診單*******************************
+
+   
+        
 
 
     
@@ -243,31 +252,8 @@ def handle_postback(event):
 #****************************視訊診療註冊流程*********************************
 #點擊醫聯網視訊診療的開始註冊按鈕後 詢問姓名(1-1)
     if post_msg == "@個人資料":
-        
-        # #建立user在mongodb的資料表(存個人基本資料 & 判斷目前流程的Status)
-        # user_data = {
-        #     "Line_id":user_id,
-        #     "Line_name":user_name,
-        #     "Real_name":"",
-        #     "Age":"",
-        #     "Gender":"",
-        #     "Status":""
-        #     }
-        # #若使用者尚未建立資料就幫他建立一份
-        # x = collection.find_one({"Line_id":user_id})
-        # if x==None:
-        #    x = collection.insert_one(user_data)
-        # else:
-        #     print('已有資料')
-
-        # x = collection.find_one({"Line_id":user_id})
-        # #如果狀態為"已註冊"就直接給使用者視訊連結
-        # if x['Status'] =='已註冊':
-        #     line_bot_api.reply_message(event.reply_token,[TextSendMessage("您已註冊完成!"),enter_video()]) 
-
         #如果是第一次註冊就開始進行基本資料問答流程
         line_bot_api.reply_message(event.reply_token,TextSendMessage("請輸入您的姓名\n(請點選左下角對話框輸入)"))
-        
         update_status(user_id,"1-1",collection) #將使用者在資料庫中紀錄的狀態設為1-1
         
         # return 0
@@ -299,7 +285,7 @@ def handle_postback(event):
             QuickReplyButton(action=PostbackAction(label="星期四",text="星期四",data="@星期四")),
             QuickReplyButton(action=PostbackAction(label="星期五",text="星期五",data="@星期五")),
             ])
-        line_bot_api.reply_message(event.reply_token,TextSendMessage(text="查詢開診時間",quick_reply=search_time))
+        line_bot_api.reply_message(event.reply_token,TextSendMessage(text="查詢開診時段",quick_reply=search_time))
 
     
     if post_msg == "@選擇日期":
@@ -309,7 +295,7 @@ def handle_postback(event):
         date_data = str(j['events'][0]['postback']['params']['datetime'])
         date_str = date_data[:10]
         time_str = date_data[11:]     
-        reserve_data = date_data #存進mongoDB資料庫
+        
 
 
         #用日期找出那天是星期幾
@@ -332,14 +318,16 @@ def handle_postback(event):
             line_bot_api.reply_message(event.reply_token,TextSendMessage(text="您選擇的時段不正確\n請查詢後再輸入時段!",quick_reply=re_choose_time))
 
         #如果選擇的時間是有開診的，回傳確認預約時間的flex message
-        reserve_list=["一","二","三","四","五"]
+        reserve_list=["一","二","三","四","五"] #假設只有1~5有開診
         if weekday in reserve_list:
             if time_str >= "10:00" and time_str <= "10:30":
-                line_bot_api.reply_message(event.reply_token,[TextSendMessage("預約日期:"+date_str+" "+"星期"+weekday+"\n預約時段:"+time_str),reserve_confirm(date_str,time_str)])
-                update_data(user_id,"Reserve_Time",reserve_data,collection)
+                line_bot_api.reply_message(event.reply_token,reserve_confirm(date_str,time_str))
+                update_data(user_id,"Reserve_Date",date_str,collection) 
+                update_data(user_id,"Reserve_Time",time_str,collection) 
             elif time_str >= "15:00" and time_str <="15:30":
                 line_bot_api.reply_message(event.reply_token,reserve_confirm(date_str,time_str))
-                update_data(user_id,"Reserve_Time",reserve_data,collection)
+                update_data(user_id,"Reserve_Date",date_str,collection) 
+                update_data(user_id,"Reserve_Time",time_str,collection) 
             else: #如果日期不在開診時段內就請使用者再次選擇日期
                 re_choose_time=QuickReply(items=[QuickReplyButton(action=DatetimePickerAction(label="選擇預約時段",data="@選擇日期",mode='datetime')),
                 QuickReplyButton(action=PostbackAction(label="查詢開診時段",text="查詢開診時段",data='@預約'))])
@@ -351,10 +339,27 @@ def handle_postback(event):
 
 
     if post_msg == "@預約成功":
-        line_bot_api.reply_message(event.reply_token,[TextSendMessage(text="預約成功!"),enter_video()]) 
+        def getUUID():
+            return "".join(str(uuid.uuid4()).split("-")).upper()
+        video_link_uuid = getUUID()
+        video_link= "https://stage.med-net.com/mednetVideo/index_m_d.html#"+video_link_uuid
+        update_data(user_id,"Video_link",video_link,collection)
+        line_bot_api.reply_message(event.reply_token,[TextSendMessage(text="預約成功!"),enter_video(video_link)])
+        x = collection.find_one({"Line_id":user_id})
+        line_bot_api.push_message("Udebc7a5c95167ff61b2872004187ab16", get_new_reserve(x["Real_name"],x['Line_name'],x['Gender'],x["Age"],x["Reserve_Date"],x['Reserve_Time'],x['Video_link']))
 #**************************************預約看診時間******************************************
+from bson.json_util import dumps   #bson轉json 轉json 
+@app.route("/mongoapi")
+def hello_world():
+    # today = date.today()
+    # today = str(today)
+    # result = list(collection.find({"Reserve_Date":today}))
 
-
+    # return "今日診單"+result
+    result = list(collection.find())
+    json_data = json.loads(dumps(result))
+    reserve_data = {'data':json_data} #整理成jquery table吃的json格式   
+    return reserve_data
 
 #主程式
 import os

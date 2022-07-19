@@ -10,8 +10,8 @@ from linebot.exceptions import (
 )
 from linebot.models import *
 import re 
-from register import *
-from controll_status import update_data, update_status
+from flex_message import *
+from controll_mongodb import update_data, update_status
 import pymongo
 
 
