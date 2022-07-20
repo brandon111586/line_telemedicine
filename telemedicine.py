@@ -11,11 +11,12 @@ from linebot.exceptions import (
 from linebot.models import *
 import re 
 from flex_message import *
-from controll_mongodb import update_data, update_status
+from controll_mongodb import update_data, update_status  #更新mongoDB資料
 import pymongo,json
-from datetime import datetime,date
+from datetime import datetime,date  #抓今日時間
 from flask_cors import CORS
-import uuid
+import uuid  #視訊連結使用
+import gridfs  #存健保卡圖片到mongoDB
 
 app = Flask(__name__)
 CORS(app)
@@ -28,7 +29,9 @@ handler = WebhookHandler('bd2b796ce8eba9b6114cf1daaca1437b')
 client = pymongo.MongoClient("mongodb+srv://brandon:65432122010@linebot.xjvgoas.mongodb.net/?retryWrites=true&w=majority")
 db = client.user
 collection =db.user_data
-order_list = db.order_list
+# order_list = db.order_list
+
+
 # ==============使用者資料格式===============
 # user_data = {
 #             "Line_id":user_id,
@@ -92,7 +95,8 @@ def handle_message(event):
             "Status":"",
             "Reserve_Date":"",
             "Reserve_Time":"",
-            "Video_link":""
+            "Video_link":"",
+            "Health_card_image":""
             }
         #若使用者尚未建立資料就幫他建立一份
         x = collection.insert_one(user_data)
@@ -182,6 +186,11 @@ def handle_message(event):
             with open(path, 'wb') as fd:
                 for chunk in message_content.iter_content():
                     fd.write(chunk)
+            with open(path,'rb') as f:
+                print(path)
+                contents = f.read()
+                
+                update_data(user_id,"Health_card_image",contents,collection)   
             
             update_status(user_id,"已註冊",collection)
         if (msg_type!="image" and msg!="男" and msg!="女"):
@@ -356,7 +365,7 @@ def hello_world():
     # result = list(collection.find({"Reserve_Date":today}))
 
     # return "今日診單"+result
-    result = list(collection.find())
+    result = list(collection.find({"Reserve_Date":{"$ne":""}})) #只回傳有預約的病患名單
     json_data = json.loads(dumps(result))
     reserve_data = {'data':json_data} #整理成jquery table吃的json格式   
     return reserve_data
