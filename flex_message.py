@@ -1,7 +1,6 @@
 from linebot.models import *
 import re
 
-from numpy import real
 
 
 #醫聯網視訊診療服務 註冊步驟說明頁
