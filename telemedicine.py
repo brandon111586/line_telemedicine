@@ -29,8 +29,6 @@ handler = WebhookHandler('bd2b796ce8eba9b6114cf1daaca1437b')
 client = pymongo.MongoClient("mongodb+srv://brandon:65432122010@linebot.xjvgoas.mongodb.net/?retryWrites=true&w=majority")
 db = client.user
 collection =db.user_data
-# order_list = db.order_list
-
 
 # ==============使用者資料格式===============
 # user_data = {
@@ -55,8 +53,7 @@ def callback():
     
     app.logger.info("Request body: " + body)
     
-    
-    
+
     # handle webhook body
     try:
         handler.handle(body, signature)
@@ -351,9 +348,9 @@ def handle_postback(event):
         def getUUID():
             return "".join(str(uuid.uuid4()).split("-")).upper()
         video_link_uuid = getUUID()
-        video_link= "https://stage.med-net.com/mednetVideo/index_m_d.html#"+video_link_uuid
-        update_data(user_id,"Video_link",video_link,collection)
-        line_bot_api.reply_message(event.reply_token,[TextSendMessage(text="預約成功!"),enter_video(video_link)])
+        video_link_external = "https://stage.med-net.com/mednetVideo/index_m_d.html?openExternalBrowser=1#"+video_link_uuid #WebRTC權限問題不能使用Line內建的瀏覽器開啟，必須使用外部瀏覽器開啟視訊頁面
+        update_data(user_id,"Video_link",video_link_external,collection)
+        line_bot_api.reply_message(event.reply_token,[TextSendMessage(text="預約成功!"),enter_video(video_link_external)])
         x = collection.find_one({"Line_id":user_id})
         line_bot_api.push_message("Udebc7a5c95167ff61b2872004187ab16", get_new_reserve(x["Real_name"],x['Line_name'],x['Gender'],x["Age"],x["Reserve_Date"],x['Reserve_Time'],x['Video_link']))
 #**************************************預約看診時間******************************************

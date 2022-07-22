@@ -1,7 +1,7 @@
 $(document).ready(function () {
-  $("#tableObj").DataTable({
-    ajax: "http://127.0.0.1:5000/mongoapi",
 
+  var table = $("#tableObj").DataTable({
+    ajax: "https://brandon12345.ddns.net/mongoapi",
     columns: [
       //列的標題一般是從DOM中讀取（也可以使用這個屬性為表格創建列標題)
       { data: "Real_name", title: "姓名" },
@@ -93,4 +93,9 @@ $(document).ready(function () {
       },
     ],
   });
+
+setInterval( function () {
+  table.ajax.reload();
+}, 60000 ); //定時刷新ajax內容 避免診所不按重新整理漏掉病人
 });
+
