@@ -1,6 +1,6 @@
 from typing import Text
 from unicodedata import name
-from flask import Flask, request, abort
+from flask import Flask, jsonify, request, abort
 
 from linebot import (
     LineBotApi, WebhookHandler,WebhookParser
@@ -29,6 +29,7 @@ handler = WebhookHandler('bd2b796ce8eba9b6114cf1daaca1437b')
 client = pymongo.MongoClient("mongodb+srv://brandon:65432122010@linebot.xjvgoas.mongodb.net/?retryWrites=true&w=majority")
 db = client.user
 collection =db.user_data
+collection_opentime=db.opentime
 
 # ==============使用者資料格式===============
 # user_data = {
@@ -66,7 +67,7 @@ def callback():
 
 @handler.add(MessageEvent, message=(TextMessage,ImageMessage))
 def handle_message(event):
-
+    global clinic_date,clinic_time
 #判斷用戶輸入的是哪種資料(文字or圖片)
     msg_type = event.message.type 
     if msg_type == 'text':
@@ -106,7 +107,9 @@ def handle_message(event):
         #如果狀態為"已註冊"就直接給使用者視訊連結
         if x['Status'] =='已註冊':
             line_bot_api.reply_message(event.reply_token,TextSendMessage("您已註冊完成!"))
-        line_bot_api.reply_message(event.reply_token,video_step())
+        else:    
+            line_bot_api.reply_message(event.reply_token,video_step())
+        
 #1-1 檢驗姓名(規則:2-4個中文字)
     if x['Status'] =='1-1':
         if msg_type == "text":
@@ -196,6 +199,16 @@ def handle_message(event):
 
 
  #*********************************預約看診時間**********************************
+    if(msg == "開診時間"):
+        rows = collection_opentime.find().sort('_id',-1) #取得最新的資料(倒序後的最後一筆)
+        row = next(rows)
+        # print(row['clinic_date'])
+        # print(row['clinic_time'])
+        
+        clinic_date = row['clinic_date']
+        clinic_time = row['clinic_time']
+        line_bot_api.reply_message(event.reply_token,clinic_opentime(clinic_date,clinic_time))
+
     if (msg == "預約"):
         if x['Status']=="已註冊":
             search_time=QuickReply(items=[
@@ -354,9 +367,11 @@ def handle_postback(event):
         x = collection.find_one({"Line_id":user_id})
         line_bot_api.push_message("Udebc7a5c95167ff61b2872004187ab16", get_new_reserve(x["Real_name"],x['Line_name'],x['Gender'],x["Age"],x["Reserve_Date"],x['Reserve_Time'],x['Video_link']))
 #**************************************預約看診時間******************************************
+
+
 from bson.json_util import dumps   #bson轉json 轉json 
-@app.route("/mongoapi")
-def hello_world():
+@app.route("/mongoapi") #病患名單API(前端請求病人資料，後端回傳)
+def patient_list():
     # today = date.today()
     # today = str(today)
     # result = list(collection.find({"Reserve_Date":today}))
@@ -366,6 +381,23 @@ def hello_world():
     json_data = json.loads(dumps(result))
     reserve_data = {'data':json_data} #整理成jquery table吃的json格式   
     return reserve_data
+
+
+@app.route('/set_opentime',methods=["POST"]) #前端傳送開診時間，後端接收並處理
+def get_opentime():
+    
+       
+    if request.method == 'POST':
+        post_data = request.get_json()
+        date = post_data.get('date')
+        time = post_data.get('time')
+        clinic_opentime={
+            'clinic_date':date,
+            'clinic_time':time,
+        }
+        collection_opentime.insert_one(clinic_opentime)
+        print(clinic_opentime)
+        return '200'
 
 #主程式
 import os

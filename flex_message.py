@@ -1,3 +1,5 @@
+from cgi import test
+from time import time
 from linebot.models import *
 import re
 
@@ -542,3 +544,633 @@ def get_new_reserve(real_name,line_name,gender,age,date_data,time_data,video_lin
             )
   return flex_message
 
+
+def clinic_opentime(clinic_date,clinic_time):
+  
+  def time_open_or_not(date,time): #利用前端送來的資料，判斷該時段是否有開診，有開診回傳打勾勾圖案，沒開診就回傳空白圖案
+    if time in clinic_date[date]:
+      return "https://cdn-icons-png.flaticon.com/512/1828/1828643.png"
+    else:
+      return "https://imgur.com/gallery/IcXZRON"
+
+  get_clinic_opentime={
+  "type": "bubble",
+  "body": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "box",
+        "layout": "horizontal",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+              {
+                "type": "text",
+                "text": "門診時間表",
+                "size": "3xl",
+                "weight": "bold",
+                "align": "center",
+                "color": "#6c757d"
+              }
+            ]
+          }
+        ],
+        "margin": "none"
+      },
+      {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal",
+                "margin": "none",
+                "width": "50px"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "一",
+                    "size": "lg",
+                    "color": "#6c757d",
+                    "weight": "bold",
+                    "align": "center"
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "二",
+                    "size": "lg",
+                    "color": "#6c757d",
+                    "weight": "bold",
+                    "align": "center"
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "三",
+                    "size": "lg",
+                    "color": "#6c757d",
+                    "weight": "bold",
+                    "align": "center"
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "四",
+                    "size": "lg",
+                    "color": "#6c757d",
+                    "weight": "bold",
+                    "align": "center"
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "五",
+                    "size": "lg",
+                    "color": "#6c757d",
+                    "weight": "bold",
+                    "align": "center"
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "六",
+                    "size": "lg",
+                    "color": "#6c757d",
+                    "weight": "bold",
+                    "align": "center"
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "日",
+                    "size": "lg",
+                    "color": "#6c757d",
+                    "weight": "bold",
+                    "align": "center"
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "light"
+              }
+            ],
+            "height": "30px",
+            "borderWidth": "normal",
+            "borderColor": "#6c757d"
+          },
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "早上",
+                    "size": "xl",
+                    "color": "#6c757d",
+                    "align": "center",
+                    "weight": "bold",
+                    "margin": "sm"
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal",
+                "margin": "none",
+                "width": "50px"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "image",
+                    "url": time_open_or_not("星期一","早上"),
+                    "margin": "sm"
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "image",
+                    "url": time_open_or_not("星期二","早上"),
+                    "margin": "sm"
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "image",
+                    "size": "xxs",
+                    "offsetTop": "none",
+                    "margin": "sm",
+                    "url": time_open_or_not("星期三","早上")
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "image",
+                    "size": "xxs",
+                    "offsetTop": "none",
+                    "margin": "sm",
+                    "url": time_open_or_not("星期四","早上")
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "image",
+                    "size": "xxs",
+                    "offsetTop": "none",
+                    "margin": "sm",
+                    "url": time_open_or_not("星期五","早上")
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "image",
+                    "size": "xxs",
+                    "offsetTop": "none",
+                    "margin": "sm",
+                    "url": time_open_or_not("星期六","早上")
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "image",
+                    "size": "xxs",
+                    "offsetTop": "none",
+                    "margin": "sm",
+                    "url": time_open_or_not("星期日","早上")
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal"
+              }
+            ],
+            "height": "40px",
+            "borderWidth": "normal",
+            "borderColor": "#6c757d"
+          },
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "下午",
+                    "size": "xl",
+                    "color": "#6c757d",
+                    "weight": "bold",
+                    "align": "center",
+                    "margin": "sm"
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal",
+                "margin": "none",
+                "width": "50px"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "image",
+                    "size": "xxs",
+                    "offsetTop": "none",
+                    "margin": "sm",
+                    "url": time_open_or_not("星期一","下午")
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "image",
+                    "size": "xxs",
+                    "offsetTop": "none",
+                    "margin": "sm",
+                    "url": time_open_or_not("星期二","下午")
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "image",
+                    "size": "xxs",
+                    "offsetTop": "none",
+                    "margin": "sm",
+                    "url": time_open_or_not("星期三","下午")
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "image",
+                    "size": "xxs",
+                    "offsetTop": "none",
+                    "margin": "sm",
+                    "url": time_open_or_not("星期四","下午")
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "image",
+                    "size": "xxs",
+                    "offsetTop": "none",
+                    "margin": "sm",
+                    "url": time_open_or_not("星期五","下午")
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "image",
+                    "size": "xxs",
+                    "offsetTop": "none",
+                    "margin": "sm",
+                    "url": time_open_or_not("星期六","下午")
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "image",
+                    "size": "xxs",
+                    "offsetTop": "none",
+                    "margin": "sm",
+                    "url": time_open_or_not("星期日","下午")
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "light"
+              }
+            ],
+            "height": "40px",
+            "borderWidth": "normal",
+            "borderColor": "#6c757d"
+          },
+          {
+            "type": "box",
+            "layout": "horizontal",
+            "contents": [
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "text",
+                    "text": "晚上",
+                    "size": "xl",
+                    "color": "#6c757d",
+                    "weight": "bold",
+                    "align": "center",
+                    "margin": "sm"
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal",
+                "margin": "none",
+                "width": "50px"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "image",
+                    "size": "xxs",
+                    "offsetTop": "none",
+                    "margin": "sm",
+                    "url": time_open_or_not("星期一","晚上")
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "image",
+                    "size": "xxs",
+                    "offsetTop": "none",
+                    "margin": "sm",
+                    "url": time_open_or_not("星期二","晚上")
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "image",
+                    "size": "xxs",
+                    "offsetTop": "none",
+                    "margin": "sm",
+                    "url": time_open_or_not("星期三","晚上")
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "image",
+                    "size": "xxs",
+                    "offsetTop": "none",
+                    "margin": "sm",
+                    "url": time_open_or_not("星期四","晚上")
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "image",
+                    "size": "xxs",
+                    "offsetTop": "none",
+                    "margin": "sm",
+                    "url": time_open_or_not("星期五","晚上")
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "image",
+                    "size": "xxs",
+                    "offsetTop": "none",
+                    "margin": "sm",
+                    "url": time_open_or_not("星期六","晚上")
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "normal"
+              },
+              {
+                "type": "box",
+                "layout": "vertical",
+                "contents": [
+                  {
+                    "type": "image",
+                    "size": "xxs",
+                    "offsetTop": "none",
+                    "margin": "sm",
+                    "url": time_open_or_not("星期日","晚上")
+                  }
+                ],
+                "borderColor": "#6c757d",
+                "borderWidth": "light"
+              }
+            ],
+            "height": "40px",
+            "borderWidth": "normal",
+            "borderColor": "#6c757d"
+          }
+        ],
+        "borderWidth": "normal",
+        "borderColor": "#6c757d",
+        "width": "260px",
+        "margin": "md"
+      }
+    ]
+  },
+  "footer": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "text",
+            "text": "早上時段:  "+str(clinic_time[0][0])+" ~ "+str(clinic_time[0][1]),
+            "color": "#6c757d",
+            "margin": "none",
+            "size": "lg",
+            "weight": "bold",
+            "style": "normal"
+          }
+        ]
+      },
+      {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "text",
+            "text": "下午時段:  "+str(clinic_time[1][0])+" ~ "+str(clinic_time[1][1]),
+            "color": "#6c757d",
+            "margin": "none",
+            "size": "lg",
+            "weight": "bold"
+          }
+        ],
+        "margin": "md"
+      },
+      {
+        "type": "box",
+        "layout": "vertical",
+        "contents": [
+          {
+            "type": "text",
+            "text": "晚上時段:  "+str(clinic_time[2][0])+" ~ "+str(clinic_time[2][1]),
+            "color": "#6c757d",
+            "margin": "none",
+            "size": "lg",
+            "weight": "bold"
+          }
+        ],
+        "margin": "md"
+      }
+    ]
+  }
+}
+  flex_message = FlexSendMessage(
+                  alt_text='開診時間資料轉圖片',
+                  contents= get_clinic_opentime #json貼在這裡
+              )
+  return flex_message
