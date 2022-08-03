@@ -202,11 +202,11 @@ def handle_message(event):
     if(msg == "開診時間"):
         rows = collection_opentime.find().sort('_id',-1) #取得最新的資料(倒序後的最後一筆)
         row = next(rows)
-        # print(row['clinic_date'])
-        # print(row['clinic_time'])
         
         clinic_date = row['clinic_date']
         clinic_time = row['clinic_time']
+        # print(clinic_date)
+        
         line_bot_api.reply_message(event.reply_token,clinic_opentime(clinic_date,clinic_time))
 
     if (msg == "預約"):

@@ -1,7 +1,7 @@
 $(document).ready(function () {
 
   var table = $("#tableObj").DataTable({
-    ajax: "https://brandon12345.ddns.net/mongoapi",
+    ajax: "http://127.0.0.1:5000/mongoapi",
     columns: [
       //列的標題一般是從DOM中讀取（也可以使用這個屬性為表格創建列標題)
       { data: "Real_name", title: "姓名" },

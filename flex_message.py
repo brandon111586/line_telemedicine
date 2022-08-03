@@ -1127,7 +1127,7 @@ def clinic_opentime(clinic_date,clinic_time):
         "contents": [
           {
             "type": "text",
-            "text": "早上時段:  "+str(clinic_time[0][0])+" ~ "+str(clinic_time[0][1]),
+            "text": "早上時段:  "+str(clinic_time[0][0])+" - "+str(clinic_time[0][1]),
             "color": "#6c757d",
             "margin": "none",
             "size": "lg",
@@ -1142,7 +1142,7 @@ def clinic_opentime(clinic_date,clinic_time):
         "contents": [
           {
             "type": "text",
-            "text": "下午時段:  "+str(clinic_time[1][0])+" ~ "+str(clinic_time[1][1]),
+            "text": "下午時段:  "+str(clinic_time[1][0])+" - "+str(clinic_time[1][1]),
             "color": "#6c757d",
             "margin": "none",
             "size": "lg",
@@ -1157,7 +1157,7 @@ def clinic_opentime(clinic_date,clinic_time):
         "contents": [
           {
             "type": "text",
-            "text": "晚上時段:  "+str(clinic_time[2][0])+" ~ "+str(clinic_time[2][1]),
+            "text": "晚上時段:  "+str(clinic_time[2][0])+" - "+str(clinic_time[2][1]),
             "color": "#6c757d",
             "margin": "none",
             "size": "lg",
@@ -1170,7 +1170,13 @@ def clinic_opentime(clinic_date,clinic_time):
   }
 }
   flex_message = FlexSendMessage(
-                  alt_text='開診時間資料轉圖片',
+                  alt_text='門診時間表',
+                  
                   contents= get_clinic_opentime #json貼在這裡
               )
   return flex_message
+
+
+
+
+
