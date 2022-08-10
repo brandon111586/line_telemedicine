@@ -9,62 +9,35 @@ from flask import jsonify
 import random
 from controll_mongodb import *
 from bson.json_util import dumps
+from operator import itemgetter
 app = Flask(__name__)
 CORS(app)
 client = pymongo.MongoClient("mongodb+srv://brandon:65432122010@linebot.xjvgoas.mongodb.net/?retryWrites=true&w=majority")
 db = client.user
 collection =db.user_data
 
-myquery = {"Real_name":"陳冠霖"}
-
-collection.delete_one(myquery)
-n=0
-for x in collection.find():
-    n+=1
-print(n)
-
-
-# file = r"Image\U9dea29ad751a3faac2a17761eee5dd5a_廖建凱_健保卡資訊.png"
-# with open(file,'rb') as f:
-#     contents = f.read()
-# update_data("Udebc7a5c95167ff61b2872004187ab16","Health_card_image",contents,collection)
-# import base64
-# @app.route("/mongoapi")
-# def hello_world():
-    # today = date.today()
-    # today = str(today)
-    # result = list(collection.find({"Reserve_Date":today}))
-    # result = list(collection.find())
-    # json_data = dumps(result) #先將list轉成bson
-    # json_data = json.loads(json_data)  #bson轉Json
-    # json_data = str(json_data)
-    # result = list(collection.find({"Reserve_Date":{"$ne":""}}))
-    # json_data = json.loads(dumps(result))
-    # reserve_data = {'data':json_data} #整理成jquery table吃的json格式   
-    # print(json_data[3]["Health_card_image"])
-    # for i in reserve_data['data']:
-    #     print(i['Real_name'])
-    # return reserve_data
+@app.route('/report_export') #匯出報表功能分頁需要的Data 
+def make_report():
+    result = list(collection.find({"Reserve_Date":{"$ne":""}})) #只回傳有預約的病患名單
     
+    data_list = [] #用來儲存整理後的名單
+    for i in result:
+        data = {
+            "姓名":i['Real_name'],
+            "暱稱":i['Line_name'],
+            "年齡":i['Age'],
+            '性別':i['Gender'],
+            '預約日期':i['Reserve_Date'],
+            '預約時間':i['Reserve_Time']
+            }
+        data_list.append(data)
+    data_list = sorted(data_list,key=itemgetter('預約日期')) #按照預約日期進行排序
+    
+    return jsonify(data_list)
+
 
 #主程式
-# import os
-# if __name__ == "__main__":
-#     port = int(os.environ.get('PORT', 5000))
-#     app.run(host='127.0.0.1', port=port, debug=True)
-# result = list(collection.find())
-# json_data = json.loads(dumps(result))
-# print(json_data)
-
-
-# for  column in datatable_column:
-#     print(json_data[0][column])
-# print(json_data)
-
-# reserve_data = {'data':json_data} #整理成jquery table吃的json格式
-# import uuid
-# def getUUID():
-#     return "".join(str(uuid.uuid4()).split("-")).upper()
-# telemedicine_number = getUUID()
-# x = "https://stage.med-net.com/mednetVideo/index_m_d.html#"+telemedicine_number
-# print(x)
+import os
+if __name__ == "__main__":
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='127.0.0.1', port=port, debug=True)

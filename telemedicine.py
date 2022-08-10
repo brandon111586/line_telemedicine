@@ -1,7 +1,7 @@
 from typing import Text
 from unicodedata import name
 from flask import Flask, jsonify, request, abort
-
+import requests
 from linebot import (
     LineBotApi, WebhookHandler,WebhookParser
 )
@@ -17,6 +17,7 @@ from datetime import datetime,date  #抓今日時間
 from flask_cors import CORS
 import uuid  #視訊連結使用
 import gridfs  #存健保卡圖片到mongoDB
+from operator import itemgetter
 
 app = Flask(__name__)
 CORS(app)
@@ -200,12 +201,14 @@ def handle_message(event):
 
  #*********************************預約看診時間**********************************
     if(msg == "開診時間"):
+        # data1 = {'sentence':'骨頭痛'}  <科別預測API測試>
+        # raw_data = json.dumps(data1)  <記得先把request[POST]用的資料(用戶輸入) 從字典型態轉JSON再送進request>
+        # r = requests.post('https://aiservice.med-net.com/division/',data=raw_data)
+        # print(r.json())
         rows = collection_opentime.find().sort('_id',-1) #取得最新的資料(倒序後的最後一筆)
         row = next(rows)
-        
         clinic_date = row['clinic_date']
         clinic_time = row['clinic_time']
-        # print(clinic_date)
         
         line_bot_api.reply_message(event.reply_token,clinic_opentime(clinic_date,clinic_time))
 
@@ -375,7 +378,6 @@ def patient_list():
     # today = date.today()
     # today = str(today)
     # result = list(collection.find({"Reserve_Date":today}))
-
     # return "今日診單"+result
     result = list(collection.find({"Reserve_Date":{"$ne":""}})) #只回傳有預約的病患名單
     json_data = json.loads(dumps(result))
@@ -383,21 +385,40 @@ def patient_list():
     return reserve_data
 
 
-@app.route('/set_opentime',methods=["POST"]) #前端傳送開診時間，後端接收並處理
+@app.route('/set_opentime',methods=["POST"]) #前端傳送開診時間，後端接收並處理，詳情請看timemanage.js
 def get_opentime():
-    
-       
     if request.method == 'POST':
         post_data = request.get_json()
         date = post_data.get('date')
         time = post_data.get('time')
         clinic_opentime={
-            'clinic_date':date,
-            'clinic_time':time,
+            'clinic_date':date, #{'星期一':[早上,晚上]} 選擇開診時段
+            'clinic_time':time, # morning['06:00','12:00'] 定義早中晚開診時間 
         }
         collection_opentime.insert_one(clinic_opentime)
         print(clinic_opentime)
         return '200'
+
+
+@app.route('/report_export') #匯出報表功能分頁需要的Data 
+def make_report():
+    result = list(collection.find({"Reserve_Date":{"$ne":""}})) #只回傳有預約的病患名單
+    
+    data_list = [] #用來儲存整理後的名單
+    for i in result:
+        data = {
+            "姓名":i['Real_name'],
+            "暱稱":i['Line_name'],
+            "年齡":i['Age'],
+            '性別':i['Gender'],
+            '預約日期':i['Reserve_Date'],
+            '預約時間':i['Reserve_Time']
+            }
+        data_list.append(data)
+    data_list = sorted(data_list,key=itemgetter('預約日期')) #按照預約日期進行排序
+    
+    return jsonify(data_list)
+
 
 #主程式
 import os
